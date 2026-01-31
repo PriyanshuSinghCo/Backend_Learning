@@ -6,7 +6,7 @@ import crypto from "node:crypto";
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
-  const hasedPassword = crypto.createHash("sha-256").update(password).digest("base64url");
+  const hasedPassword = crypto.createHash("sha-256").update(password).digest("hex");
 
   try {
     const rootDirId = new Types.ObjectId();
@@ -55,12 +55,12 @@ export const login = async (req, res, next) => {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
-  const enterdPasswordHash = crypto.createHash("sha-256").update(password).digest("base64url");
-  
-  console.log(enterdPasswordHash);
+  const enterdPasswordHash = crypto.createHash("sha-256").update(password).digest("hex");
   if (user.password !== enterdPasswordHash) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
+
+
   res.cookie("uid", user._id.toString(), {
     httpOnly: true,
     maxAge: 60 * 1000 * 60 * 24 * 7,
@@ -76,6 +76,6 @@ export const getCurrentUser = (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("uid");
+  res.clearCookie("token");
   res.status(204).end();
 };
