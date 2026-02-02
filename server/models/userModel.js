@@ -5,35 +5,40 @@ const userSchema = new Schema(
     name: {
       type: String,
       required: true,
-      minLength: [
+      minlength: [
         3,
-        "name field should a string with at least three characters",
+        "Name must be at least 3 characters long",
       ],
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
       match: [
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/,
-        "please enter a valid email",
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        "Please enter a valid email",
       ],
     },
     password: {
       type: String,
       required: true,
-      minLength: 4,
+      minlength: 8,
     },
     rootDirId: {
       type: Schema.Types.ObjectId,
       ref: "Directory",
+      required: true,
     },
   },
   {
     strict: "throw",
+    timestamps: true,
   }
 );
 
 const User = model("User", userSchema);
-
 export default User;
+
