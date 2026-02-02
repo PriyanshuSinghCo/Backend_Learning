@@ -6,7 +6,13 @@ import crypto from "node:crypto";
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
-  const hasedPassword = crypto.createHash("sha-256").update(password).digest("hex");
+  const salt = crypto.randomBytes(16)
+
+
+  const hasedPassword = crypto.pbkdf2Sync(password, salt, 100000, 32, "sha256")
+
+
+
 
   try {
     const rootDirId = new Types.ObjectId();
@@ -23,7 +29,7 @@ export const register = async (req, res, next) => {
       _id: userId,
       name,
       email,
-      password:hasedPassword,
+      password:`${salt.toString("base64url")}.${hasedPassword.toString("base64url")}`,
       rootDirId,
     });
 
@@ -55,8 +61,22 @@ export const login = async (req, res, next) => {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
-  const enterdPasswordHash = crypto.createHash("sha-256").update(password).digest("hex");
-  if (user.password !== enterdPasswordHash) {
+  const [salt, savedHashedPassword] = user.password.split(".")
+
+
+  const enterdPasswordHash = crypto.pbkdf2Sync(
+    password,
+    Buffer.from(salt, "base64url"), 
+    100000, 
+    32, 
+    "sha256"
+  ).toString("base64url");
+
+  console.log(enterdPasswordHash);
+  console.log(savedHashedPassword);
+
+
+  if (savedHashedPassword!== enterdPasswordHash) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
