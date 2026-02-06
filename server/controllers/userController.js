@@ -2,16 +2,13 @@ import Directory from "../models/directoryModel.js";
 import User from "../models/userModel.js";
 import mongoose, { Types } from "mongoose";
 import crypto from "node:crypto";
+import  bcrypt  from "bcrypt";
 
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
+  const hasedPassword = await bcrypt.hash(password, 12);
 
-  const salt = crypto.randomBytes(16)
-
-
-  const hasedPassword = crypto.pbkdf2Sync(password, salt, 100000, 32, "sha256")
-
-
+  console.log(hasedPassword);
 
 
   try {
@@ -61,22 +58,9 @@ export const login = async (req, res, next) => {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
-  const [salt, savedHashedPassword] = user.password.split(".")
+  const isPasswordValid = await bcrypt.compare(password, user.password);
 
-
-  const enterdPasswordHash = crypto.pbkdf2Sync(
-    password,
-    Buffer.from(salt, "base64url"), 
-    100000, 
-    32, 
-    "sha256"
-  ).toString("base64url");
-
-  console.log(enterdPasswordHash);
-  console.log(savedHashedPassword);
-
-
-  if (savedHashedPassword!== enterdPasswordHash) {
+  if (!isPasswordValid) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
